@@ -1,2 +1,2 @@
 # d3-tutorial-001
-https://bost.ocks.org/mike/bar/3/
+https://bost.ocks.org/mike/bar
