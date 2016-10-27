@@ -1,0 +1,188 @@
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular.min.js"></script>
+    <style>
+        .my-svg-chart rect {
+            fill: steelblue;
+            filter: url(#dropshadow);
+        }
+        
+        .my-svg-chart text {
+            fill: white;
+            font: 10px sans-serif;
+            text-anchor: end;
+        }
+        
+        .chart {
+            background: #eee;
+            padding: 3px;
+        }
+        .chart div {
+            width: 0;
+            transition: all 1s ease-out;
+        }
+        .chart div {
+            font: 10px sans-serif;
+            background-color: steelblue;
+            text-align: right;
+            padding: 3px;
+            margin: 5px;
+            color: white;
+            box-shadow: 2px 2px 2px #666;
+        }
+        svg {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+
+<body ng-app="app">
+    <div id="content">
+        <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+        <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+        <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+    </div>
+    
+    <!--<my-chart data="[4, 8, 15, 16, 23, 42]"></my-chart>-->
+
+    <div class="chart">
+    </div>
+
+    <div class="my-canvas"></div>
+
+    <svg class="my-svg-chart" width="300" height="200">
+        <filter id="dropshadow" height="130%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="3"/> <!-- stdDeviation is how much to blur -->
+            <feOffset dx="2" dy="2" result="offsetblur"/> <!-- how much to offset -->
+            <feMerge> 
+                <feMergeNode/> <!-- this contains the offset blurred image -->
+                <feMergeNode in="SourceGraphic"/> <!-- this contains the element that the filter is applied to -->
+            </feMerge>
+        </filter>
+    </svg>
+
+    <script>
+        var data = [4, 8, 15, 16, 23, 42];
+        var scaleX = d3.scaleLinear()
+            .domain([0, d3.max(data)])
+            .range([0, 420]);
+
+        function refresh() {
+            var rows = d3.select(".chart")
+                .selectAll("div")
+                .data(data);
+
+            rows
+                .transition()
+                .style("width", d => scaleX(d) + "px")
+                .text(d => d)
+
+            rows.enter()
+                    .append("div")
+                    .style("width", d => scaleX(d) + "px")
+                    .text(d => d);
+        };
+
+        refresh();
+
+        d3.select(".chart")
+            .selectAll("div")
+            .on("click", (d, i) => {
+                data = _.map(data, (e, i2) => e + (i2 == i ? _.random(1, 5) : 1));
+                refresh();
+            });
+    </script>
+
+    <script>
+        d3.select(".my-canvas")
+            .append("svg")
+            .attr("width", 300)
+            .attr("height", 300)
+            .selectAll("circle")
+            .data(["blue", "red", "green", "yellow", "gray"])
+            .enter()
+            .append("circle")
+            .attr("cx", (d, i) => 20 + 20 * i)
+            .attr("cy", (d, i) => 150)
+            .attr("fill", d => d)
+            .attr("r", d => 0)
+            .transition()
+            .attr("r", d => 10);
+    </script>
+
+    <script>
+        var svg = d3.select(".my-svg-chart"),
+            width = +svg.attr("width"),
+            height = +svg.attr("height");
+        d3.tsv("data.tsv", function(error, data) {
+            //data = _.map(data, d => +d.value);
+            var scaleX = d3.scaleLinear()
+                .domain([0, d3.max(data, d => d.value) * 1.2])
+                .range([0, width]);
+            var bar = svg.selectAll("g")
+                .data(data)
+                .enter()
+                .append("g")
+                .attr("transform", (d, i) => "translate(0," + i * 25 + ")");
+            bar.append("rect")
+                .attr("width", 0)
+                .attr("height", 19)
+                .transition()
+                .attr("width", d => scaleX(d.value));
+            bar.append("text")
+                .attr("x", d => scaleX(d.value) - 3)
+                .attr("y", 10)
+                .attr("dy", "0.35em")
+                .text(d => d.name + ": " + d.value);
+        });
+    </script>
+
+    <script>
+        angular.module("app", []);
+/*        .directive("myChart", () => {
+            return {
+                template: "<div></div>",
+                restrict: "E",
+                scope: {
+                    data: "="
+                },
+                link: (scope, element, attrs) => {
+                    function refresh() {
+                        d3.select(element[0]).attr("class", "chart");
+
+                        var rows = d3.select(element[0])
+                            .selectAll("div")
+                            .data(scope.data);
+
+                        rows
+                            .transition()
+                            .style("width", d => d * 10 + "px")
+                            .text(d => d)
+
+                        rows.enter()
+                                .append("div")
+                                .style("width", d => d * 10 + "px")
+                                .text(d => d);
+                    };
+                    
+                    refresh();
+                    
+                    d3.select(element[0])
+                        .selectAll("div")
+                        .on("click", (d, i) => {
+                            scope.data = _.map(scope.data, (e, i2) => e + (i2 == i ? _.random(1, 5) : 1));
+                            refresh();
+                        });
+                }
+            };
+        });*/
+    </script>
+</body>
+
+</html>
